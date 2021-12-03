@@ -28,7 +28,7 @@ import { S2Pagination } from '@/components/pagination';
 import {
   handleDrillDown,
   handleDrillDownIcon,
-  getSafetyOptions,
+  getSheetComponentOptions,
 } from '@/utils';
 
 import './index.less';
@@ -78,7 +78,7 @@ export const BaseSheet: React.FC<BaseSheetProps> = memo((props) => {
     const params: S2Constructor = [
       container.current,
       dataCfg,
-      getSafetyOptions(options),
+      getSheetComponentOptions(options),
     ];
     if (spreadsheet) {
       return spreadsheet(...params);
@@ -216,7 +216,7 @@ export const BaseSheet: React.FC<BaseSheetProps> = memo((props) => {
       curOptions = handleDrillDownIcon(curProps, curSheet, iconClickCallback);
     }
 
-    curSheet.setOptions(getSafetyOptions(curOptions));
+    curSheet.setOptions(curOptions);
   };
 
   const setDataCfg = () => {
@@ -345,7 +345,13 @@ export const BaseSheet: React.FC<BaseSheetProps> = memo((props) => {
     <StrictMode>
       <Spin spinning={isLoading === undefined ? loading : isLoading}>
         {header && (
-          <Header {...header} sheet={ownSpreadsheet} width={options.width} />
+          <Header
+            {...header}
+            sheet={ownSpreadsheet}
+            width={options.width}
+            dataCfg={getSafetyDataConfig(dataCfg)}
+            options={getSheetComponentOptions(options)}
+          />
         )}
         <div ref={container} className={`${S2_PREFIX_CLS}-container`} />
         {showPagination && (
