@@ -312,6 +312,10 @@ describe('hide-columns test', () => {
         hideColumnNodes: [{ field: '3', id: 'id-3', colIndex: 3 }],
       },
     ]);
+
+    expect(mockSpreadSheetInstance.store.get('lastHiddenColumnFields')).toEqual(
+      ['1', '3'],
+    );
   });
 
   test('should skip hidden group columns if hidden column fields not change', () => {

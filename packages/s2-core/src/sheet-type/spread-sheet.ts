@@ -9,7 +9,6 @@ import {
   isEmpty,
   isFunction,
   isString,
-  once,
 } from 'lodash';
 import { hideColumnsByThunkGroup } from '@/utils/hide-columns';
 import { BaseCell } from '@/cell';
@@ -348,7 +347,7 @@ export abstract class SpreadSheet extends EE {
       this.dataSet.setDataCfg(this.dataCfg);
     }
     this.buildFacet();
-    this.initHiddenColumnsDetail();
+    this.hideColumns();
     this.emit(S2Event.LAYOUT_AFTER_RENDER);
   }
 
@@ -581,13 +580,17 @@ export abstract class SpreadSheet extends EE {
   }
 
   // 初次渲染时, 如果配置了隐藏列, 则生成一次相关配置信息
-  private initHiddenColumnsDetail = once(() => {
+  private hideColumns = () => {
     const { hiddenColumnFields } = this.options.interaction;
     if (isEmpty(hiddenColumnFields)) {
       return;
     }
+    const lastHiddenColumnFields = this.store.get('lastHiddenColumnFields', []);
+    if (lastHiddenColumnFields.length === hiddenColumnFields.length) {
+      return;
+    }
     hideColumnsByThunkGroup(this, hiddenColumnFields, true);
-  });
+  };
 
   private clearCanvasEvent() {
     const canvasEvents = this.getEvents();

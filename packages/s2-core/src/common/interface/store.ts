@@ -77,7 +77,7 @@ export interface StoreKey {
    */
   hiddenColumnsDetail: HiddenColumnsInfo[];
   // 上一次渲染的列头配置
-  lastRenderedColumnFields: string[];
+  lastHiddenColumnFields: string[];
   // 是否手动调整过宽高
   resized: boolean;
 

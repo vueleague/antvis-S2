@@ -179,6 +179,7 @@ export const hideColumnsByThunkGroup = (
     columns,
     hiddenColumnFields,
   );
+  spreadsheet.store.set('lastHiddenColumnFields', hiddenColumnFields);
   hiddenColumnsGroup.forEach((fields) => {
     hideColumns(spreadsheet, fields, forceRender);
   });
