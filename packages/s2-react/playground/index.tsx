@@ -14,7 +14,7 @@ import {
   Tag,
   Tabs,
 } from 'antd';
-import React from 'react';
+import React, { createRef } from 'react';
 import ReactDOM from 'react-dom';
 import {
   HeaderActionIconProps,
@@ -57,6 +57,7 @@ import {
   SheetType,
   PartDrillDown,
   PartDrillDownInfo,
+  Adaptive,
 } from '@/components';
 
 import './index.less';
@@ -121,7 +122,6 @@ const partDrillDown: PartDrillDown = {
 
         drillDownData.push(dataItem1);
       });
-      console.log(drillDownData);
       resolve({
         drillField: field,
         drillData: drillDownData,
@@ -140,10 +140,88 @@ const CustomColTooltip = () => <div>custom colTooltip</div>;
 
 const ActionIconTooltip = ({ name }) => <div>{name} Tooltip</div>;
 
+class TestMainLayout extends React.Component {
+  /** sheet 容器 ref */
+  private sheetContainerRef = createRef<HTMLDivElement>();
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      dataCfg: customMerge({}, pivotSheetDataCfg, {
+        fields: {
+          rows: ['province', 'city'],
+          columns: ['sub_type'],
+          values: ['number'],
+          valueInCols: true,
+        },
+        sortParams: [
+          {
+            // sortFieldId 为维度值时，params.data 为维度值列表
+            sortFieldId: 'sub_type',
+            sortByMeasure: 'number',
+            sortMethod: 'ASC',
+            // sortFunc: (params) => {
+            //     const { data } = params;
+            //     console.log(data, 'data');
+            //     console.log(params, 'params');
+            //     // return data?.sort((a, b) => a > b);
+            // },
+          },
+        ],
+      }),
+      mergedOptions: customMerge({}, defaultOptions, {
+        debug: true,
+        width: 600,
+        height: 400,
+        pagination: {
+          pageSize: 10,
+          current: 1,
+        },
+        totals: {
+          row: {
+            showGrandTotals: true,
+            calcTotals: {
+              aggregation: 'SUM',
+            },
+          },
+        },
+      }),
+    };
+  }
+
+  render() {
+    const { dataCfg, mergedOptions } = this.state;
+
+    return (
+      <>
+        <div style={{ width: 400, height: 600 }} ref={this.sheetContainerRef}>
+          <SheetComponent
+            key="basic"
+            dataCfg={dataCfg as S2DataConfig}
+            options={mergedOptions as S2Options}
+            sheetType={'pivot'}
+            showPagination={true}
+            adaptive={{
+              width: true,
+              height: true,
+              getContainer: () => this.sheetContainerRef.current,
+            }}
+            // adaptive={false}
+            header={{
+              title: 'test',
+              description: '1112',
+            }}
+          />
+        </div>
+      </>
+    );
+  }
+}
+
 function MainLayout() {
   const [render, setRender] = React.useState(true);
   const [sheetType, setSheetType] = React.useState<SheetType>('pivot');
-  const [showPagination, setShowPagination] = React.useState(false);
+  const [showPagination, setShowPagination] = React.useState(true);
   const [showTotals, setShowTotals] = React.useState(false);
   const [themeCfg, setThemeCfg] = React.useState<ThemeCfg>({ name: 'default' });
   const [showCustomTooltip, setShowCustomTooltip] = React.useState(false);
@@ -157,6 +235,8 @@ function MainLayout() {
   const [strategyOptions, setStrategyOptions] =
     React.useState<S2Options>(mockStrategyOptions);
   const s2Ref = React.useRef<SpreadSheet>();
+  const [test, setTest] = React.useState(1);
+  const sheetContainerRef = React.useRef<HTMLDivElement>(null);
 
   //  ================== Callback ========================
   const updateOptions = (newOptions: Partial<S2Options<React.ReactNode>>) => {
@@ -208,6 +288,8 @@ function MainLayout() {
   };
 
   const onThemeChange = (e: RadioChangeEvent) => {
+    console.log(test, 'onThemeChange');
+    setTest((test) => test + 1);
     setThemeCfg(
       customMerge({}, themeCfg, {
         name: e.target.value,
@@ -228,6 +310,7 @@ function MainLayout() {
 
   const onColCellClick = (cellInfo: TargetCellInfo) => {
     logHandler('onColCellClick')(cellInfo);
+    console.log(test, 'test');
     if (!options.showDefaultHeaderActionIcon) {
       const { event } = cellInfo;
       s2Ref.current.showTooltip({
@@ -267,8 +350,8 @@ function MainLayout() {
       width: 600,
       height: 400,
       hierarchyCollapse: false,
-      pagination: showPagination && {
-        pageSize: 10,
+      pagination: {
+        pageSize: 3,
         current: 1,
       },
       tooltip: {
@@ -377,7 +460,7 @@ function MainLayout() {
 
   return (
     <div className="playground">
-      <Tabs defaultActiveKey="basic" type="card">
+      <Tabs defaultActiveKey="pivot" type="card">
         <TabPane tab="基础表" key="basic">
           <Collapse defaultActiveKey="filter">
             <Collapse.Panel header="筛选器" key="filter">
@@ -672,46 +755,55 @@ function MainLayout() {
             </Collapse.Panel>
           </Collapse>
           {render && (
-            <SheetComponent
-              key="basic"
-              dataCfg={dataCfg as S2DataConfig}
-              options={mergedOptions as S2Options}
-              sheetType={sheetType}
-              adaptive={adaptive}
-              ref={s2Ref}
-              themeCfg={themeCfg}
-              partDrillDown={partDrillDown}
-              header={{
-                title: (
-                  <a href="https://github.com/antvis/S2">
-                    {reactPkg.name} playground
-                  </a>
-                ),
-                description: (
-                  <Space>
-                    <span>
-                      {reactPkg.name}: <Tag>{reactPkg.version}</Tag>
-                    </span>
-                    <span>
-                      {corePkg.name}: <Tag>{corePkg.version}</Tag>
-                    </span>
-                  </Space>
-                ),
-                switcherCfg: { open: true },
-                exportCfg: { open: true },
-                advancedSortCfg: { open: true },
-              }}
-              onDataCellTrendIconClick={logHandler('onDataCellTrendIconClick')}
-              onAfterRender={logHandler('onLoad')}
-              onDestroy={logHandler('onDestroy')}
-              onColCellClick={onColCellClick}
-              onRowCellClick={logHandler('onRowCellClick')}
-              onCornerCellClick={logHandler('onCornerCellClick')}
-              onDataCellClick={logHandler('onDataCellClick')}
-              onLayoutResizeMouseDown={(data) => {
-                console.log(data);
-              }}
-            />
+            <div style={{ width: 400, height: 600 }} ref={sheetContainerRef}>
+              <SheetComponent
+                key="basic"
+                dataCfg={dataCfg as S2DataConfig}
+                options={mergedOptions as S2Options}
+                sheetType={sheetType}
+                adaptive={{
+                  width: true,
+                  height: true,
+                  getContainer: () => sheetContainerRef.current,
+                }}
+                ref={s2Ref}
+                themeCfg={themeCfg}
+                partDrillDown={partDrillDown}
+                showPagination={true}
+                header={{
+                  title: (
+                    <a href="https://github.com/antvis/S2">
+                      {reactPkg.name} playground
+                    </a>
+                  ),
+                  description: (
+                    <Space>
+                      <span>
+                        {reactPkg.name}: <Tag>{reactPkg.version}</Tag>
+                      </span>
+                      <span>
+                        {corePkg.name}: <Tag>{corePkg.version}</Tag>
+                      </span>
+                    </Space>
+                  ),
+                  switcherCfg: { open: true },
+                  exportCfg: { open: true },
+                  advancedSortCfg: { open: true },
+                }}
+                onDataCellTrendIconClick={logHandler(
+                  'onDataCellTrendIconClick',
+                )}
+                onAfterRender={logHandler('onLoad')}
+                onDestroy={logHandler('onDestroy')}
+                onColCellClick={onColCellClick}
+                onRowCellClick={logHandler('onRowCellClick')}
+                onCornerCellClick={logHandler('onCornerCellClick')}
+                onDataCellClick={logHandler('onDataCellClick')}
+                onLayoutResizeMouseDown={(data) => {
+                  console.log(data);
+                }}
+              />
+            </div>
           )}
         </TabPane>
         <TabPane tab="自定义目录树" key="customTree">
@@ -755,4 +847,10 @@ function MainLayout() {
   );
 }
 
-ReactDOM.render(<MainLayout />, document.getElementById('root'));
+ReactDOM.render(
+  <>
+    <TestMainLayout />
+    <MainLayout />
+  </>,
+  document.getElementById('root'),
+);

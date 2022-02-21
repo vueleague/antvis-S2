@@ -244,7 +244,7 @@ export class PivotDataSet extends BaseDataSet {
    * 排序优先级：
    * 1、sortParams里的条件优先级高于原始数据
    * 2、sortParams多个item：按照顺序优先级，排在后面的优先级高
-   * 3、item中多个条件：sortByField > sortFunc > sortBy > sortMethod
+   * 3、item中多个条件：sortFunc > sortBy > sortMethod
    */
   handleDimensionValuesSort = () => {
     each(this.sortParams, (item) => {
@@ -496,9 +496,9 @@ export class PivotDataSet extends BaseDataSet {
     isRow?: boolean,
     drillDownFields?: string[],
   ): DataType[] {
-    if (isEmpty(query)) {
-      return compact(customFlattenDeep(this.indexesData));
-    }
+    // if (isEmpty(query)) {
+    //   return compact(customFlattenDeep(this.indexesData));
+    // }
     const { rows, columns, values: valueList } = this.fields;
     const totalRows = !isEmpty(drillDownFields)
       ? rows.concat(drillDownFields)

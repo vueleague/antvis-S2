@@ -11,7 +11,7 @@ export const isDescSort = (sortMethod) => toUpper(sortMethod) === 'DESC';
 
 /**
  * 执行排序
- * @param list - 待排序数组
+ * @param list - 待排序数组： todo: 这里待排序的数组是全量的，正常情况是以合计进行维度值的排序
  * @param sortMethod - 升、降序
  * @param key - 根据key数值排序，如果有key代表根据维度值排序，故按数字排，如果没有按照字典排
  */
@@ -124,11 +124,11 @@ export const sortByMethod = (params: SortActionParams): string[] => {
       sortByMeasure === TOTAL_VALUE ? query[EXTRA_FIELD] : sortByMeasure,
     ) as Record<string, DataType>[];
 
-    result = getDimensionsWithParentPath(
-      sortFieldId,
-      isInRows ? rows : columns,
-      dimensions,
-    );
+    // result = getDimensionsWithParentPath(
+    //   sortFieldId,
+    //   isInRows ? rows : columns,
+    //   dimensions,
+    // );
   } else {
     result = map(sortAction(measureValues, sortMethod)) as string[];
   }
@@ -165,16 +165,16 @@ export const handleSortAction = (params: SortActionParams): string[] => {
   const { sortByMeasure, query, sortFieldId } = sortParam;
   let measureValues;
   if (isSortByMeasure) {
-    // 根据指标排序，需要首先找到指标的对应的值
-    if (sortByMeasure === TOTAL_VALUE) {
+    // 根据指标排序，需要首先找到指标的对应的值 : todo: 这里应该判断
+    if (query) {
+      measureValues = dataSet.getMultiData(query);
+    } else {
       // 按小计，总计排序
       const isRow =
         fields?.columns?.includes(sortFieldId) &&
         keys(query)?.length === 1 &&
         has(query, EXTRA_FIELD);
-      measureValues = dataSet.getMultiData(query, true, isRow);
-    } else {
-      measureValues = dataSet.getMultiData(query);
+      measureValues = dataSet.getMultiData({}, true, true);
     }
   } else {
     // 其他都是维度本身的排序方式
